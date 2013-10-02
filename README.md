@@ -1,8 +1,10 @@
-mapalau
+mapacar
 =======
 
 This is a fit to purpose scraper to download metadata and shapefiles associated
 with a [Map](http://monitoramento.sema.mt.gov.br/navegadores/MapaCar.html) published by Governo do Estado de Mato Grosso in Brazil. It was written for Lisa Rausch at the Gibbs Land Use and Environment Lab, Center for Sustainability and the Global Environment, Nelson Institute for Environmental Studies, at the University of Wisconsin - Madison.
+
+See [mapalau](http://github.com/edsu/mapalau) project for more details.
 
 Run
 ---
