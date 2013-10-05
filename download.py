@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import datetime
 import lxml.etree as et
 
 import ptree
@@ -26,13 +27,14 @@ def get_items():
     url = "http://monitoramento.sema.mt.gov.br/simlamws/IntegracaoMapaLau.asmx"
     url = "http://monitoramento.sema.mt.gov.br/simlamws/IntegracaoMapaProjetoDigital.asmx"
     count = 0
+    num_results = 100
     while True:
         response = requests.post(url, 
             headers={
                 "Content-Type": "text/xml; charset=utf-8",
                 "User-Agent": UA
             }, 
-            data=request_xml % (count + 10, count + 1)
+            data=request_xml % (count + num_results, count + 1)
         )
         doc = et.fromstring(response.content)
         found = False
@@ -41,20 +43,16 @@ def get_items():
             yield i
         if found != True:
             break
-        count += 10
+        count += num_results
 
 def download():
     count = 0
     for item in get_items():
-        # be nice :)
-        time.sleep(1)
-
         count += 1
+
         id = item.find('./{http://tempuri.org/}MapaDigital').text
         if not id or id == "0":
             continue
-
-        print count, id,
 
         # write out metadata
         data_dir = 'data' + ptree.id2ptree(id)
@@ -63,12 +61,14 @@ def download():
         et.cleanup_namespaces(item)
         xml = et.tostring(item, pretty_print=True)
 
-        # make sure we don't have the same process number twice
+	# no need to refetch
         metadata_file = os.path.join(data_dir, "%s.xml" % id)
         if os.path.isfile(metadata_file):
-            print "duplicate %s" % metadata_file
-            sys.exit()
+            continue
         open(metadata_file, "w").write(xml)
+
+        # be nice :)
+        time.sleep(1)
 
         # try to download shapefile
         zip_url = item.find('./{http://tempuri.org/}UrlZip').text
@@ -77,9 +77,7 @@ def download():
             if r.headers['Content-Type'] == 'application/x-zip-compressed':
                 zip_file = metadata_file.replace(".xml", ".zip")
                 open(zip_file, "wb").write(r.content)
-                print zip_file,
-
-        print
+        	print "%s %s %s %s" % (datetime.datetime.now(), count, id, zip_file)
 
 if __name__ == "__main__":
     download()
